@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Happy New Year 2026 🎆</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body {
+    margin: 0;
+    background: radial-gradient(circle at top,#050505,#000);
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  #heart {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 150px;
+    height: 150px;
+    background: red;
+    transform: translate(-50%, -50%) scale(1);
+    clip-path: polygon(50% 0%, 61% 7%, 68% 15%, 75% 28%, 80% 40%, 82% 52%, 80% 64%, 75% 75%, 68% 85%, 61% 92%, 50% 100%, 39% 92%, 32% 85%, 25% 75%, 20% 64%, 18% 52%, 20% 40%, 25% 28%, 32% 15%, 39% 7%);
+    box-shadow: 0 0 20px red, 0 0 40px red, 0 0 60px orange;
+    cursor: pointer;
+    transition: transform 0.8s ease, box-shadow 0.8s ease;
+    z-index: 2;
+  }
+
+  #heart.glow {
+    transform: translate(-50%, -50%) scale(2);
+    box-shadow: 0 0 50px red, 0 0 100px orange, 0 0 150px yellow;
+  }
+
+  canvas {
+    position: absolute;
+    inset:0;
+    z-index:1;
+  }
+
+  .lighter {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: yellow;
+    border-radius: 50%;
+    box-shadow: 0 0 15px yellow;
+    cursor: grab;
+    z-index:3;
+  }
+</style>
+</head>
+
+<body>
+
+<div id="heart" title="Click me!"></div>
+<canvas id="fireworks"></canvas>
+<div class="lighter" id="lighter" style="top:80%; left:10%;"></div>
+
+<script>
+  const heart = document.getElementById("heart");
+  const canvas = document.getElementById("fireworks");
+  const ctx = canvas.getContext("2d");
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+
+  window.addEventListener("resize", () => {
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+  });
+
+  /* SOUND EFFECTS */
+  const clickSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3");
+  const dragSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-game-ball-tap-2073.mp3");
+  const fireworkSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-explosion-in-space-2959.mp3");
+
+  /* PARTICLES FOR FIREWORKS & SPARKLES */
+  let particles = [];
+  let messageParticles = [];
+  const message = "Happy New Year 2026";
+  const messageFontSize = 50;
+
+  function firework(x, y, color) {
+    for(let i=0;i<80;i++){
+      particles.push({
+        x: x,
+        y: y,
+        vx: (Math.random()-0.5)*8,
+        vy: (Math.random()-1.5)*8,
+        life: Math.random()*60+30,
+        color: color
+      });
+    }
+    fireworkSound.play();
+  }
+
+  function sparkleLetter(x, y, letter) {
+    // create sparkles for letter
+    const density = 5;
+    for(let i=0;i<density;i++){
+      messageParticles.push({
+        x: x,
+        y: y,
+        vx: (Math.random()-0.5)*2,
+        vy: (Math.random()-0.5)*2,
+        life: Math.random()*40+30,
+        color: "yellow",
+        letter: letter
+      });
+    }
+  }
+
+  function animate(){
+    ctx.fillStyle = "rgba(0,0,0,0.15)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    particles.forEach((p,i)=>{
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life--;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x,p.y,3,3);
+      if(p.life<=0) particles.splice(i,1);
+    });
+
+    messageParticles.forEach((p,i)=>{
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life--;
+      ctx.fillStyle = p.color;
+      ctx.fillText(p.letter, p.x, p.y);
+      if(p.life<=0) messageParticles.splice(i,1);
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+
+  /* HEART CLICK */
+  heart.addEventListener("click", ()=>{
+    heart.classList.add("glow");
+    clickSound.play();
+    setTimeout(()=>{
+      spawnFirecrackers();
+    }, 1000);
+  });
+
+  /* FIRECRACKERS SPAWN */
+  const firecrackers = [];
+  function spawnFirecrackers(){
+    for(let i=0;i<5;i++){
+      firecrackers.push({
+        x: 100 + i*200,
+        y: canvas.height-50,
+        color: `hsl(${Math.random()*360},100%,50%)`,
+        launched: false
+      });
+    }
+    drawFirecrackers();
+  }
+
+  function drawFirecrackers(){
+    firecrackers.forEach(f=>{
+      ctx.fillStyle = f.color;
+      ctx.beginPath();
+      ctx.arc(f.x,f.y,10,0,Math.PI*2);
+      ctx.fill();
+    });
+  }
+
+  /* DRAG LIGHTER */
+  const lighter = document.getElementById("lighter");
+  let offsetX, offsetY;
+  let dragging = false;
+
+  lighter.addEventListener("mousedown", (e)=>{
+    dragging = true;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+    dragSound.play();
+  });
+
+  window.addEventListener("mousemove", (e)=>{
+    if(dragging){
+      lighter.style.left = e.clientX - offsetX + "px";
+      lighter.style.top = e.clientY - offsetY + "px";
+    }
+  });
+
+  window.addEventListener("mouseup", ()=>{
+    if(dragging){
+      dragging = false;
+      checkFirecrackerCollision();
+    }
+  });
+
+  function checkFirecrackerCollision(){
+    firecrackers.forEach(f=>{
+      const lighterX = parseInt(lighter.style.left) + 25;
+      const lighterY = parseInt(lighter.style.top) + 25;
+      const dx = f.x - lighterX;
+      const dy = f.y - lighterY;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < 50 && !f.launched){
+        f.launched = true;
+        launchFirecracker(f);
+      }
+    });
+  }
+
+  function launchFirecracker(f){
+    let t=0;
+    const interval = setInterval(()=>{
+      f.y -=5;
+      f.x += Math.sin(t/5)*2;
+      firework(f.x, f.y, f.color);
+      t++;
+      if(f.y<50){
+        clearInterval(interval);
+        showMessage();
+      }
+    },30);
+  }
+
+  /* SHOW SPARKLE MESSAGE */
+  function showMessage(){
+    ctx.font = `${messageFontSize}px Poppins`;
+    const startX = canvas.width/2 - message.length*15;
+    const startY = canvas.height/2;
+    for(let i=0;i<message.length;i++){
+      sparkleLetter(startX + i*25, startY, message[i]);
+    }
+  }
+
+</script>
+</body>
+</html>
